@@ -3,17 +3,17 @@
 from __future__ import annotations
 import json, logging, os, time
 from typing import TypeVar
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
-def _get_client() -> OpenAI:
+def _get_client() -> ChatOpenAI:
     api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
     base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL") or None
-    return OpenAI(api_key=api_key, base_url=base_url)
+    return ChatOpenAI(api_key=api_key, base_url=base_url)
 
 
 def get_model() -> str:
