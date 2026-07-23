@@ -1,19 +1,28 @@
-"""LLM client — unified interface for any OpenAI-compatible API."""
+"""LLM client — unified LangChain interface for any OpenAI-compatible API."""
 
 from __future__ import annotations
-import json, logging, os, time
+import logging
+import os
+import time
 from typing import TypeVar
+
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
+logger = logging.getLogger(__name__)
 
 
-def _get_client() -> ChatOpenAI:
+def _get_client(temperature: float = 0.2) -> ChatOpenAI:
     api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
     base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL") or None
-    return ChatOpenAI(api_key=api_key, base_url=base_url)
+    return ChatOpenAI(
+        model=get_model(),
+        api_key=api_key,
+        base_url=base_url,
+        temperature=temperature,
+        max_tokens=4096,
+    )
 
 
 def get_model() -> str:
@@ -27,22 +36,19 @@ def llm_call(
     temperature: float = 0.2,
     max_retries: int = 3,
 ) -> T:
-    client = _get_client()
-    model = get_model()
-    schema = json.dumps(response_model.model_json_schema(), indent=2)
-    messages = [
-        {"role": "system", "content": f"{system_prompt}\n\nRespond with JSON matching:\n{schema}\nOnly JSON — no markdown fences."},
-        {"role": "user", "content": user_prompt},
-    ]
+    client = _get_client(temperature).with_structured_output(response_model)
     last_exc = None
     for attempt in range(1, max_retries + 1):
         try:
-            resp = client.chat.completions.create(
-                model=model, messages=messages, temperature=temperature,
-                max_tokens=4096, response_format={"type": "json_object"},
+            result = client.invoke(
+                [
+                    ("system", system_prompt),
+                    ("human", user_prompt),
+                ]
             )
-            raw = resp.choices[0].message.content or "{}"
-            return response_model.model_validate_json(raw)
+            if isinstance(result, response_model):
+                return result
+            return response_model.model_validate(result)
         except Exception as exc:
             last_exc = exc
             logger.warning("LLM call failed (attempt %d/%d): %s", attempt, max_retries, exc)
