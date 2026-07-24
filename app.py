@@ -13,6 +13,9 @@ from workflow.graph import build
 from workflow.state import initial_state
 
 logging.basicConfig(level=logging.INFO)
+# Suppress noisy HTTP request logging from the LLM client
+for lib in ("httpx", "httpcore", "openai._base_client"):
+    logging.getLogger(lib).setLevel(logging.WARNING)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
