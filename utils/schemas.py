@@ -43,7 +43,7 @@ class InsightOutput(BaseModel):
 class ReviewScore(BaseModel):
     score: int = Field(..., ge=1, le=10, description="Quality score 1-10")
     feedback: str = Field(..., description="Detailed feedback")
-    issues: list[str] = Field(default_factory=list)
+    issues: list[str] = Field(default_factory=list, description="List of specific issues — output as a JSON array of strings")
 
 
 class FinalReport(BaseModel):

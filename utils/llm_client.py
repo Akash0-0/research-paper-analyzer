@@ -65,7 +65,7 @@ def llm_call(
     user_prompt: str,
     response_model: type[T],
     temperature: float = 0.2,
-    max_retries: int = 3,
+    max_retries: int = 2,
 ) -> T:
     # Build a simple field description from the model schema (no raw JSON)
     schema = response_model.model_json_schema()
