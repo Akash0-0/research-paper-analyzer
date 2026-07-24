@@ -25,15 +25,15 @@ class Summary(BaseModel):
 
 class Citation(BaseModel):
     index: int = Field(..., description="Citation number")
-    title: str = Field(default="")
-    authors: str = Field(default="")
+    title: str = Field(default="", description="Paper title of this reference")
+    authors: str = Field(default="", description="Author names as comma-separated string")
     year: Optional[int] = None
-    venue: str = Field(default="")
+    venue: str = Field(default="", description="Conference or journal name")
     url: str = Field(default="")
 
 
 class CitationOutput(BaseModel):
-    references: list[Citation] = Field(default_factory=list)
+    references: list[Citation] = Field(default_factory=list, description="Array of citation objects. Each has: index (number), title (string), authors (string), year (number or null), venue (string), url (string)")
 
 
 class InsightOutput(BaseModel):
