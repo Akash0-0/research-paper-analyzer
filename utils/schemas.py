@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class PaperMetadata(BaseModel):
     title: str = Field(default="", description="Paper title")
-    authors: list[str] = Field(default_factory=list)
+    authors: list[str] = Field(default_factory=list, description="List of author names — output as a JSON array")
     year: Optional[int] = None
     venue: str = Field(default="")
 
