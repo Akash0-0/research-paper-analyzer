@@ -67,9 +67,18 @@ def llm_call(
     temperature: float = 0.2,
     max_retries: int = 3,
 ) -> T:
-    schema = json.dumps(response_model.model_json_schema(), indent=2)
+    # Build a simple field description from the model schema (no raw JSON)
+    schema = response_model.model_json_schema()
+    field_desc = ", ".join(
+        f'"{name}" ({info.get("description", "text")})'
+        for name, info in schema.get("properties", {}).items()
+    )
+    instruct = (
+        f"\n\nReturn ONLY a valid JSON object with these fields: {field_desc}."
+        " No markdown, no 'json' prefix, no extra commentary."
+    )
     messages = [
-        ("system", f"{system_prompt}\n\nReturn ONLY valid JSON matching this schema — no markdown, no 'json' prefix:\n{schema}"),
+        ("system", system_prompt + instruct),
         ("human", user_prompt),
     ]
 
